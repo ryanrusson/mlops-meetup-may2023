@@ -51,7 +51,7 @@ img[alt~="center"] {
 
 ---
 
-## "and then Cyber comes along..."
+## "...and lets you know about some critical vulnerabilities"
 
 <style>
 img[alt~="center"] {
@@ -61,6 +61,20 @@ img[alt~="center"] {
 </style>
 
 ![center](imgs/that-would-be-great.jpg)
+
+---
+
+## "You then might feel like this..."
+
+<style>
+img[alt~="center"] {
+  display: block;
+  margin: 0 auto;
+}
+</style>
+
+![center](imgs/not-my-model.jpg)
+
 
 ---
 
