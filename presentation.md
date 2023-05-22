@@ -72,7 +72,7 @@ May 2023
 * **2006:** *Process Containers* was launched by Google for limiting, accounting and isolating resource usage
 * **2008:** LinuX Containers (LXC) was the first, complete implementation of Linux container manager
 * **2013:** Docker debuts to the public at PyCon 2013 in Santa Clara
-* **2016:** The imporatance of container security is revealed
+* **2016:** The importance of container security is revealed
 * **2017:** Mature container tools, `containerd` and `rkt` adopted by CNCF, and K8s grows up
 * **2018:** App development via containerization becomes the "Gold Standard"
 
@@ -145,16 +145,35 @@ $ python parse_trivy.py
 
 ---
 
+![h:600 center](imgs/just-demo.gif)
+
+---
+
 # Trivy Results 😱
 
 ```
 VULN TYPE    SEVERITY      COUNT
 -----------  ----------  -------
-LIBRARY      MEDIUM            1
-OS           CRITICAL         19
-OS           HIGH            235
-OS           MEDIUM          241
+LANG-PKGS    MEDIUM            1
+OS-PKGS      CRITICAL         19
+OS-PKGS      HIGH            235
+OS-PKGS      MEDIUM          254
 ```
+
+---
+
+# But What About the Fixable Vulns?
+
+```
+$ docker pull python:3.9.16
+$ trivy image --severity CRITICAL,HIGH,MEDIUM --ignore-unfixed python:3.9.16 -o .cache/results.json -f "json"
+$ python parse_trivy.py
+```
+
+
+---
+
+![h:600 center](imgs/just-demo-fixable.gif)
 
 ---
 
@@ -163,9 +182,9 @@ OS           MEDIUM          241
 ```
 VULN TYPE    SEVERITY      COUNT
 -----------  ----------  -------
-LIBRARY      MEDIUM            1
-OS           HIGH              5
-OS           MEDIUM            2
+LANG-PKGS    MEDIUM            1
+OS-PKGS      HIGH              9
+OS-PKGS      MEDIUM            2
 ```
 
 ---
@@ -177,9 +196,13 @@ OS           MEDIUM            2
 ```docker
 FROM python:3.9.16
 
-RUN apt-get update
-RUN apt-get dist-upgrade -y
+RUN apt update
+RUN apt dist-upgrade -y
 ```
+
+---
+
+![h:600 center](imgs/just-demo-os-fix.gif)
 
 ---
 
@@ -188,7 +211,7 @@ RUN apt-get dist-upgrade -y
 ```
 VULN TYPE    SEVERITY      COUNT
 -----------  ----------  -------
-LIBRARY      MEDIUM            1
+LANG-PKGS    MEDIUM            1
 ```
 
 ---
@@ -215,11 +238,15 @@ LIBRARY      MEDIUM            1
 ```docker
 FROM python:3.9.16
 
-RUN apt-get update
-RUN apt-get dist-upgrade -y
+RUN apt update
+RUN apt dist-upgrade -y
 
-RUN python -m pip install --upgrade setuptools
+RUN python -m pip install --upgrade setuptools==65.5.1
 ```
+
+---
+
+![h:600 center](imgs/just-demo-lib-fix.gif)
 
 ---
 
@@ -266,19 +293,12 @@ VULN TYPE    SEVERITY    COUNT
 
 # Where To From Here? 🏔️
 
-* Standardize what scans your organize requires and risk tolerance 
-* Set up CI pipelines to scan image builds for vulns
-* Practice network security
-    * *"Who can get to my container?"*
-* Don't run containers as `root`
-* What's the remediation process?
-
 ---
 
 # Standardize What Scans and Severity
 
 * All scanners aren't the same, the organziation should align
-* Risk tolerance: *"Do we allow medium"* vulns? 
+* Risk tolerance: *"Do we allow medium vulns?"* 
 * When do scans happen? 
 
 ---
@@ -291,9 +311,38 @@ VULN TYPE    SEVERITY    COUNT
 
 # Network Security
 
+* Use security groups to control traffic to instances in your subnets
+* Use *network access control lists* (ACLs) to control inbound and outbound traffic at the subnet level
+* Manage access through Identity and Access Management (IAM)
+* Use logging to monitor the IP traffic going to and from a VPC, subnet, or network interface
+* Use a Network Access Analyzer to identify unintended network access to resources in our VPCs
+* Use AWS Network Firewall to monitor and protect your network
+
+source: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-best-practices.html
+
 ---
 
 # No `root` Access! ⚠️
+
+> ❗Create an *"app"* user for your containers
+
+```
+FROM python:3.9.16
+USER root
+# Install stuff as root...
+...
+
+# Create the user
+ARG USERNAME=user-name-goes-here
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+# Give the user some permissions for specific directories...
+...
+# Set the new, default user
+USER $USERNAME
+```
 
 ---
 
@@ -303,3 +352,14 @@ VULN TYPE    SEVERITY    COUNT
 * Some vulns are remediated by simple OS updates (e.g. `apt-get update`)
 * Others require specific packages to be upgraded (e.g. `log4j`)
 * This *can* break your entire environment! ...😏 malicious compliance?
+
+---
+
+# In Summary... 📑
+
+* Standardize what scans your organize requires and risk tolerance 
+* Set up CI pipelines to scan image builds for vulns
+* Practice network security
+    * *"Who can get to my container?"*
+* Don't run containers as `root`
+* What's the remediation process?

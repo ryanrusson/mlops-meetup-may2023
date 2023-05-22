@@ -21,3 +21,9 @@ demo-lib-fix:
     docker build -t python:libfix -f ./Dockerfile.lib --load .
     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/code/mlops-meetup-may2023/.cache/:/root/.cache/ aquasec/trivy:0.41.0 image --severity CRITICAL,HIGH,MEDIUM --ignore-unfixed python:libfix -o /root/.cache/results.json -f "json"
     python parse_trivy.py
+
+
+# troubleshoot new vulns
+demo-troubleshoot:
+    docker build -t python:libfix -f ./Dockerfile.lib --load .
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/code/mlops-meetup-may2023/.cache/:/root/.cache/ aquasec/trivy:0.41.0 image --severity CRITICAL,HIGH,MEDIUM --ignore-unfixed python:libfix -o /root/.cache/results.txt

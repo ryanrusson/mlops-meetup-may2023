@@ -26,16 +26,17 @@ def grouping(df):
 with open(".cache/results.json", "r") as f:
     data = json.loads(f.read())
 
-df_os = pd.DataFrame(data["Results"][0].get("Vulnerabilities"))
-df_os["Vuln Type"] = "OS"
+df_01 = pd.DataFrame(data["Results"][0].get("Vulnerabilities"))
+df_01["Vuln Type"] = data["Results"][0].get("Class").upper()
 
-try:
-    df_lib = pd.DataFrame(data["Results"][1].get("Vulnerabilities"))
+try: 
+    df_02 = pd.DataFrame(data["Results"][1].get("Vulnerabilities"))
+    df_02["Vuln Type"] = data["Results"][1].get("Class").upper()
+    df = pd.concat([df_01, df_02], axis=0)
+
 except IndexError:
-    df_lib = pd.DataFrame(data["Results"][0].get("Vulnerabilities"))
+    df = df_01
 
-df_lib["Vuln Type"] = "LIBRARY"
-df = pd.concat([df_os, df_lib], axis=0)
 summary = grouping(df)
 print()
 print(tabulate(summary, headers=["VULN TYPE", "SEVERITY", "COUNT"], showindex=False))
